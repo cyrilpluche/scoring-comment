@@ -1,5 +1,7 @@
 package helpers
 
+import java.sql.Date
+
 import scala.annotation.tailrec
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql._
@@ -40,7 +42,7 @@ object DataCleaner {
       StructField("psychiatric_or_mental_illness", DoubleType, true) ::
       StructField("transgender", DoubleType, true) ::
       StructField("white", DoubleType, true) ::
-      StructField("created_date", DateType, true) ::
+      StructField("created_date", StringType, true) ::
       StructField("publication_id", IntegerType, true) ::
       StructField("parent_id", DoubleType, true) ::
       StructField("article_id", DoubleType, true) ::
@@ -62,21 +64,6 @@ object DataCleaner {
       .drop("parent_id")
       .drop("article_id")
       .drop("publication_id")
-      .drop("transgender")
-      .drop("other_gender")
-      .drop("heterosexual")
-      .drop("bisexual")
-      .drop("other_sexual_orientation")
-      .drop("hindu")
-      .drop("buddhist")
-      .drop("atheist")
-      .drop("other_religion")
-      .drop("asian")
-      .drop("latino")
-      .drop("other_race_or_ethnicity")
-      .drop("physical_disability")
-      .drop("intellectual_or_learning_disability")
-      .drop("other_disability")
       .drop("created_date")
 
     val converter = udf(convertTarget)
@@ -103,7 +90,7 @@ object DataCleaner {
   }}
 
   def cleanAfterIndex(df: DataFrame): DataFrame = {
-    val finalDf: DataFrame = df.select("target", "scaledFeatures")
+    val finalDf: DataFrame = df.select("target", "features")
     finalDf
   }
 
@@ -135,7 +122,6 @@ object DataCleaner {
     } else {
       Array(df, df)
     }
-
   }
 
 }

@@ -41,21 +41,24 @@ object Jigsaw extends App {
   val pipeline: Pipeline = DataIndexer.index(dfCleaned)
   val dfFormated: DataFrame = pipeline.fit(dfCleaned).transform(dfCleaned)
   val dfFinal: DataFrame = DataCleaner.cleanAfterIndex(dfFormated)
-  val Array(train, test) = DataCleaner.splitData(dfFinal, nb.toInt)
+  val Array(train, test) = DataCleaner.splitData(dfFinal, choice.toInt)
+
   println("\n== Cleaning data end ==")
 
   if (choice == "1" || choice == "3") {
     /**============== TRAIN ==============*/
     println("\n== Train model start ==")
+    train.cache()
     val model: PipelineModel = DataIndexer.lr().fit(train)
-    model.write.overwrite().save("linear-regression-model")
+    model.write.overwrite().save("linear-regression-model4")
     println("\n== Train model end ==")
   }
 
-  val modelSaved = PipelineModel.read.load("linear-regression-model")
+  val modelSaved = PipelineModel.read.load("linear-regression-model4")
 
   if (choice == "2" || choice == "3") {
     /**============== TEST ==============*/
+    test.cache()
     println("\n== Prediction start ==")
     val prediction: DataFrame = modelSaved.transform(test)
     println("\n== Prediction end ==")

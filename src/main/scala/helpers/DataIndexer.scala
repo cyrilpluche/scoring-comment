@@ -3,8 +3,8 @@ package helpers
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.ml.feature._
-import org.apache.spark.sql.{DataFrame}
-import org.apache.spark.sql.types.StructField
+import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.types._
 
 object DataIndexer {
 
@@ -12,32 +12,28 @@ object DataIndexer {
     // String indexers for categorical columns : comment_text, rating
     val commentTextIndex = createStringIndexer("comment_text")
     val ratingIndex = createStringIndexer("rating")
-    // val createdDateIndex = createStringIndexer("created_date")
 
-    val vectorLabels = renameLabelForVector(df.schema.fields, new Array[String](df.columns.length), 0)
+    val vectorLabels = renameLabelForVector(df.schema.fields, new Array[String](df.columns.length - 1), 0, 0)
     val assembler = new VectorAssembler()
       .setInputCols(vectorLabels)
       .setOutputCol("features")
       .setHandleInvalid("skip")
 
-    val scaler = new MinMaxScaler()
-      .setInputCol("features")
-      .setOutputCol("scaledFeatures")
-
     val pipeline = new Pipeline().setStages(Array(
       commentTextIndex,
       ratingIndex,
-      assembler,
-      scaler
+      assembler
     ))
     pipeline
   }
 
   def lr() = {
     val lr = new LogisticRegression()
+      .setFamily("multinomial")
       .setMaxIter(10)
+      .setThreshold(0.4)
       .setLabelCol("target")
-      .setFeaturesCol("scaledFeatures")
+      .setFeaturesCol("features")
       .setRegParam(0.05)
 
     val pipeline = new Pipeline().setStages(Array(
@@ -54,22 +50,25 @@ object DataIndexer {
     stringIndexer
   }
 
-  def renameLabelForVector(fields: Array[StructField], labels: Array[String], i: Int): Array[String] = {
+  def renameLabelForVector(fields: Array[StructField], labels: Array[String], i: Int, j: Int): Array[String] = {
     if (i == fields.length) {
       labels
     } else {
       val labelsCopy: Array[String] = labels.clone()
 
       if (fields(i).name == "comment_text") {
-        labelsCopy(i) = "comment_textIndex"
+        labelsCopy(j) = "comment_textIndex"
       } else if (fields(i).name == "rating") {
-        labelsCopy(i) = "ratingIndex"
-      } /* else if (fields(i).name == "created_date") {
-        labelsCopy(i) = "created_dateIndex"
-      }*/ else {
-        labelsCopy(i) = fields(i).name
+        labelsCopy(j) = "ratingIndex"
+      } else if (fields(i).name != "target") {
+        labelsCopy(j) = fields(i).name
       }
-      renameLabelForVector(fields, labelsCopy, i + 1)
+
+      if (fields(i).name == "target") {
+        renameLabelForVector(fields, labelsCopy, i + 1, j)
+      } else {
+        renameLabelForVector(fields, labelsCopy, i + 1, j + 1)
+      }
     }
   }
 
