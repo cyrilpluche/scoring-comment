@@ -49,11 +49,11 @@ object Jigsaw extends App {
     println("\n== Train model start ==")
     train.cache()
     val model: PipelineModel = PipelineBuilder.logisticRegression().fit(train)
-    model.write.overwrite().save("linear-regression-model6")
+    model.write.overwrite().save("linear-regression-model")
     println("\n== Train model end ==")
   }
 
-  val modelSaved = PipelineModel.read.load("linear-regression-model6")
+  val modelSaved = PipelineModel.read.load("linear-regression-model")
 
   if (choice == "2" || choice == "3") {
     /**============== TEST ==============*/

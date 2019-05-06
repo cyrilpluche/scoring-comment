@@ -29,9 +29,8 @@ object PipelineBuilder {
 
   def logisticRegression() = {
     val lr = new LogisticRegression()
-      .setFamily("multinomial")
       .setMaxIter(10)
-      .setThreshold(0.5)
+      .setThreshold(0.8)
       .setLabelCol("target")
       .setFeaturesCol("features")
       .setRegParam(0.05)
