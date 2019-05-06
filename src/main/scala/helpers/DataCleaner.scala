@@ -89,11 +89,6 @@ object DataCleaner {
     else 0.0
   }}
 
-  def cleanAfterIndex(df: DataFrame): DataFrame = {
-    val finalDf: DataFrame = df.select("target", "features")
-    finalDf
-  }
-
   // Replace null values by 0.0 for numerical columns
   // Replace null values by "" for String columns
   @tailrec
@@ -115,12 +110,13 @@ object DataCleaner {
     }
   }
 
-  def splitData(df: DataFrame, mode: Int): Array[DataFrame] = {
-    if (mode == 3) {
-      val Array(train, test) = df.randomSplit(Array(0.7, 0.3))
+  def finalizeAndSplit(df: DataFrame, choice: Int): Array[DataFrame] = {
+    val dfFinal: DataFrame = df.select("target", "features")
+    if (choice == 3) {
+      val Array(train, test) = dfFinal.randomSplit(Array(0.7, 0.3))
       Array(train, test)
     } else {
-      Array(df, df)
+      Array(dfFinal, dfFinal)
     }
   }
 

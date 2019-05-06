@@ -1,4 +1,4 @@
-import _root_.helpers.{DataCleaner, DataIndexer, Evaluation}
+import _root_.helpers.{DataCleaner, PipelineBuilder, Evaluation}
 import org.apache.log4j._
 import org.apache.spark.ml.{Pipeline, PipelineModel}
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -38,10 +38,9 @@ object Jigsaw extends App {
   println("\n== Cleaning data start ==")
   // Clean initial data frame and format it to double values through the pipeline. Then we keep only target and scaledFeatures columns.
   val dfCleaned: DataFrame = DataCleaner.clean(df, nb.toInt)
-  val pipeline: Pipeline = DataIndexer.index(dfCleaned)
-  val dfFormated: DataFrame = pipeline.fit(dfCleaned).transform(dfCleaned)
-  val dfFinal: DataFrame = DataCleaner.cleanAfterIndex(dfFormated)
-  val Array(train, test) = DataCleaner.splitData(dfFinal, choice.toInt)
+  val pipeline: Pipeline = PipelineBuilder.indexAndAssemble(dfCleaned)
+  val dfTransformed: DataFrame = pipeline.fit(dfCleaned).transform(dfCleaned)
+  val Array(train, test) = DataCleaner.finalizeAndSplit(dfTransformed, choice.toInt)
 
   println("\n== Cleaning data end ==")
 
@@ -49,12 +48,12 @@ object Jigsaw extends App {
     /**============== TRAIN ==============*/
     println("\n== Train model start ==")
     train.cache()
-    val model: PipelineModel = DataIndexer.lr().fit(train)
-    model.write.overwrite().save("linear-regression-model4")
+    val model: PipelineModel = PipelineBuilder.logisticRegression().fit(train)
+    model.write.overwrite().save("linear-regression-model6")
     println("\n== Train model end ==")
   }
 
-  val modelSaved = PipelineModel.read.load("linear-regression-model4")
+  val modelSaved = PipelineModel.read.load("linear-regression-model6")
 
   if (choice == "2" || choice == "3") {
     /**============== TEST ==============*/

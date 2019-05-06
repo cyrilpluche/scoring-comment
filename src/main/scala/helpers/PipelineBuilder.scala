@@ -6,9 +6,9 @@ import org.apache.spark.ml.feature._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types._
 
-object DataIndexer {
+object PipelineBuilder {
 
-  def index(df: DataFrame): Pipeline = {
+  def indexAndAssemble(df: DataFrame): Pipeline = {
     // String indexers for categorical columns : comment_text, rating
     val commentTextIndex = createStringIndexer("comment_text")
     val ratingIndex = createStringIndexer("rating")
@@ -27,11 +27,11 @@ object DataIndexer {
     pipeline
   }
 
-  def lr() = {
+  def logisticRegression() = {
     val lr = new LogisticRegression()
       .setFamily("multinomial")
       .setMaxIter(10)
-      .setThreshold(0.4)
+      .setThreshold(0.5)
       .setLabelCol("target")
       .setFeaturesCol("features")
       .setRegParam(0.05)
